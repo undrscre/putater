@@ -25,22 +25,22 @@ despite being a virtual computer, pot80 has some pretty beefy specs! such as
 ## roadmap
 here's a list of features we plan to implement:
 - potacode (a simple compiled language for potasm)
-    - [] variables
-    - [] functions
-    - [] conditionals
+    - [ ] variables
+    - [ ] functions
+    - [ ] conditionals
     - etc
 - potasm (a simple assembly for pot80)
-    - [] basic memory instructions
-    - [] basic arithmetic instructions
+    - [ ] basic memory instructions
+    - [ ] basic arithmetic instructions
     - etc
 - pot80
-    - [] basic CPU
-    - [] basic display
-    - [] basic memory
+    - [ ] basic CPU
+    - [ ] basic display
+    - [ ] basic memory
     - etc
 - potemu
-    - [] basic emulator
-    - [] basic editor
+    - [ ] basic emulator
+    - [ ] basic editor
     - etc
 
 ## why is called pot80?
