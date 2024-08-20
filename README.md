@@ -1,8 +1,8 @@
-# pot80
+# putater
 a virtual computer, for the funsies!
 
 ## what is this?
-pot80 is a virtual computer featuring a 80x80 monochrome display,
+putater is a virtual computer featuring a 256x256 16-bit color display,
 a 16-bit CPU, and a simple instruction set. all written in typescript!
 
 ## how do i use it?
@@ -18,30 +18,22 @@ npm run build
 
 ## system specs?
 despite being a virtual computer, pot80 has some pretty beefy specs! such as
-- 80x80 monochrome display
+- 256x256, 256 color display
 - 16-bit CPU
-- 8kb of RAM
+- 2kb of memory
+- 16kb of program data
+
 
 ## roadmap
 here's a list of features we plan to implement:
-- potacode (a simple compiled language for potasm)
+- [ ] putacode (a simple compiled language for potasm)
     - [ ] variables
     - [ ] functions
     - [ ] conditionals
-    - etc
-- potasm (a simple assembly for pot80)
-    - [ ] basic memory instructions
-    - [ ] basic arithmetic instructions
-    - etc
-- pot80
+    - [ ] loops
+- [ ] putASM
+- [ ] putater
     - [ ] basic CPU
     - [ ] basic display
     - [ ] basic memory
-    - etc
-- potemu
-    - [ ] basic emulator
-    - [ ] basic editor
-    - etc
-
-## why is called pot80?
-potato computer, 80x80 display, po-tatey, pot80. get it?
+    
