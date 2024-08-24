@@ -15,7 +15,7 @@ git clone https://github.com/undrscre/pot80.git
 npm install
 npm run build
 ```
-
+    
 ## system specs?
 despite being a virtual computer, pot80 has some pretty beefy specs! such as
 - 256x256, 256 color display
@@ -31,9 +31,13 @@ here's a list of features we plan to implement:
     - [ ] functions
     - [ ] conditionals
     - [ ] loops
-- [ ] putASM
+- [x] putASM
 - [ ] putater
-    - [ ] basic CPU
-    - [ ] basic display
-    - [ ] basic memory
+    - [x] basic CPU
+    - [x] basic memory
+    - [ ] basic terminal (for I/O)
+    - extensions
+        - [ ] more colors
+        - [ ] pixel display
+        - [ ] sound card
     
