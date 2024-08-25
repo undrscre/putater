@@ -14,6 +14,6 @@ export class Stack<T> {
     }
 
     get items(): T[] {
-        return this.items;
+        return this.stack;
     }
 }

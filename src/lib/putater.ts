@@ -19,8 +19,9 @@ class Processor {
 	programData: Uint16Array;
 	memory: Memory;
 	counter: number;
-	paused: Boolean;
+	paused: boolean;
 	addressStack: Stack<number>;
+	debug: boolean;
 
 	constructor(registerCount: number, programData: Uint16Array, memory: Memory) {
 		
@@ -31,22 +32,22 @@ class Processor {
 		this.addressStack = new Stack<number>();
 
 		this.paused = false;
-		
+		this.debug = false;
+
 	}
 	
 	decodeInstruction(instruction: number): Instruction {
-		
-		let opcode = (instruction >> 12) & 0b1111;  // Bits 15-12
-		opcode = parseInt(opcode.toString(16), 16);
+
+		const opcode = (instruction >> 12) & 0b1111;  // Bits 15-12
 		
 		const regA = (instruction >> 8) & 0b1111;     // Bits 11-8
 		const regB = (instruction >> 4) & 0b1111;  // Bits 7-4
 		const regC = instruction & 0b1111;         // Bits 3-0
 		
-		const imm = instruction & 0b11111111;
-		const addr = instruction & 0b1111111111;
+		const imm = instruction & 0b11111111; // Bits 7-0
+		const addr = instruction & 0b1111111111; // Bits 9-0
 		const value = instruction & 0b11111111; // Bits 7-0
-		const cond = ((instruction & 0b110000000000) >> 10);
+		const cond = (instruction >> 10) & 0b11; // Bits 11-10
 		
 		return {
 			opcode: opcode,
@@ -61,114 +62,142 @@ class Processor {
 	
 	executeInstruction(instruction: Instruction) {
 		switch (instruction.opcode) {
-			case 0x0				:
+			case 0xf:
 				// NOP - no operation
 				this.counter += 1;
+				if (this.debug) console.log("NOP - ", this.counter);
 				break;
-			case 0x1:
+			case 0xe:
 				// HLT - halt
 				if (!this.paused) this.paused = true;
-				this.counter = 0;	
+					this.counter = 0;	
+					if (this.debug) console.log("HLT - ", this.counter);
 				break;
-			case 0x2:
+			case 0xd:
 				// ADD - add
 				this.registers[instruction.reg.c] = this.registers[instruction.reg.a] + this.registers[instruction.reg.b];
 				this.counter += 1;
+				if (this.debug) console.log("ADD - ", this.registers[instruction.reg.c]);
 				break;
-			case 0x3:
+			case 0xc:
 				// SUB - subtract
 				this.registers[instruction.reg.c] = this.registers[instruction.reg.a] - this.registers[instruction.reg.b];
 				this.counter += 1;
+				if (this.debug) console.log("SUB - ", this.registers[instruction.reg.c]);
 				break;
-			case 0x4:
+			case 0xb:
 				// NOR - bitwise NOR
 				this.registers[instruction.reg.c] = ~(this.registers[instruction.reg.a] | this.registers[instruction.reg.b]);
 				this.counter += 1;
+				if (this.debug) console.log("NOR - ", this.registers[instruction.reg.c]);
 				break;
-			case 0x5:
+			case 0xa:
 				// AND - bitwise AND
 				this.registers[instruction.reg.c] = this.registers[instruction.reg.a] & this.registers[instruction.reg.b];
 				this.counter += 1;
+				if (this.debug) console.log("AND - ", this.registers[instruction.reg.c]);
 				break;
-			case 0x6:
+			case 0x9:
 				// XOR - bitwise XOR    
 				this.registers[instruction.reg.c] = this.registers[instruction.reg.a] ^ this.registers[instruction.reg.b];
 				this.counter += 1;
+				if (this.debug) console.log("XOR - ", this.registers[instruction.reg.c]);
 				break;
-			case 0x7:
+			case 0x8:
 				// MOV - move
 				this.registers[instruction.reg.c] = this.registers[instruction.reg.a];
 				this.counter += 1;
+				if (this.debug) console.log("MOV - ", this.registers[instruction.reg.c]);
 				break;
-			case 0x8:
+			case 0x7:
 				// LDR - load register
 				this.registers[instruction.reg.a] = instruction.value;
 				this.counter += 1;
+				if (this.debug) console.log("LDR - ", this.registers[instruction.reg.a]);
 				break;
-			case 0x9:
+			case 0x6:
 				// ADR = add register
 				this.registers[instruction.reg.a] += instruction.value;
 				this.counter += 1;
+				if (this.debug) console.log("ADR - ", this.registers[instruction.reg.a]);
 				break;
-			case 0xA:			
+			case 0x5:			
 				// JMP = jump
 				this.counter = instruction.addr;
+				if (this.debug) console.log("JMP - ", instruction.addr);
 				break;
-			case 0xB:
+			case 0x4:
 				// BRH = branch
 				switch (instruction.condition) {
 					case 0b00:
 						// BEQ = branch if equal
 						if (this.registers[instruction.reg.a] === this.registers[instruction.reg.b]) {
 							this.counter = instruction.addr;
+							if (this.debug) console.log("BRH/BEQ - ", instruction.addr);
 						}
 						break;
 					case 0b01:
 						// BNE = branch if not equal
 						if (this.registers[instruction.reg.a] !== this.registers[instruction.reg.b]) {
 							this.counter = instruction.addr;
+							if (this.debug) console.log("BRH/BNE - ", instruction.addr);
 						}
 						break;
 					case 0b10:
 						// BLT = branch if less than
 						if (this.registers[instruction.reg.a] < this.registers[instruction.reg.b]) {
 							this.counter = instruction.addr;
+							if (this.debug) console.log("BRH/BLT - ", instruction.addr);
 						}
 						break;
 					case 0b11:
 						// BGT = branch if greater than
 						if (this.registers[instruction.reg.a] > this.registers[instruction.reg.b]) {
 							this.counter = instruction.addr;
+							if (this.debug) console.log("BRH/BGT - ", instruction.addr);
 						}
 						break;
 					default: 
+						if (this.debug) console.log("BRH/NOP - No condition provided");
 						this.counter += 1;
 				}
 				break;
-			case 0xC:
+			case 0x3:
 				// CAL = call
 				this.counter = instruction.addr;
 				this.addressStack.push(this.counter + 1);
+				if (this.debug) console.log("CAL - ", instruction.addr);
 				break;
-			case 0xD:
+			case 0x2:
 				// RET = return
 				this.counter = this.addressStack.items[0]
 				this.addressStack.pop();
+				if (this.debug) console.log("RET - ", this.addressStack.items[0]);
 				break;
-			case 0xE:
+			case 0x1:
 				// LOD = load from memory                                                    // dirty fix
 				this.registers[instruction.reg.b] = this.memory.read((instruction.reg.a + instruction.reg.c));
+				this.counter += 1;
+				if (this.debug) console.log("LOD - ", this.registers[instruction.reg.b]);
 				break;			
-			case 0xF:
+			case 0x0:
 				// STR = store to memory
 				this.memory.write((instruction.reg.a + instruction.reg.c), this.registers[instruction.reg.b]);
+				this.counter += 1;
+				if (this.debug) console.log("STR - ", this.memory.read((instruction.reg.a + instruction.reg.c)));
 				break;
+			default:
+				console.error("Invalid opcode, resetting program");			
+				this.paused = true;
+				this.counter = 0;
 		}
 	}
 
 	executeProgram() {
-		while (!this.paused) {
+		for (let i = 0; i < this.programData.length; i++) {
 			let instruction = this.decodeInstruction(this.programData[this.counter]);
+			if(this.debug) console.log("instruction: ", instruction, "counter: ", this.counter);
+			
 			this.executeInstruction(instruction);
 		}
 	}
@@ -199,11 +228,13 @@ export class putater {
 		this.cpu = new Processor(16, new Uint16Array(16), this.memory);		
 
 		this.cpu.programData = new Uint16Array([
-			0b0111000010000000,
-			0b0111000110000000,
-			0b0111001000000000,
-			0b1101				
+			0b0111000000001000,
+			0b0111000100001000,
+			0b0111001000000000,	
+			0b1101000000010010,
+			0b1110000000000000,
 		]);
+		this.cpu.debug = true;
 		this.cpu.executeProgram();
 	}
 }
