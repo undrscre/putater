@@ -21,7 +21,11 @@
     "skipLibCheck": true,
     "moduleResolution": "bundler",
     "strict": true,
-    "noEmit": true
+    "noEmit": true,
+
+    "typeRoots": [
+      "./node_modules/@types"
+    ]
   },
   "include": ["src/**/*.ts", "src/**/*.js", "src/**/*.svelte", "src/**/*.d.ts", "vite.config.ts"],
 }

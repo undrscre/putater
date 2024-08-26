@@ -1,3 +1,5 @@
+// import { format } from 'util';
+
 export class Stack<T> {
     stack: T[] = [];
 
@@ -15,5 +17,15 @@ export class Stack<T> {
 
     get items(): T[] {
         return this.stack;
+    }
+}
+
+export class Logger {
+    message: string = "";
+
+    log(...args: any[]): void {
+        let message = args.join(" ");   
+        console.log(message);
+        this.message += message + "\n";
     }
 }
