@@ -30,7 +30,7 @@
                     .then(response => response.text())
                     .then(file => {
                         const contents = new Uint16Array(file.split("\n").map(line => parseInt(line, 2)));
-                        messages = [...messages, `Program loaded: ${file} instructions!`];
+                        messages = [...messages, `Program loaded: \n${file}`];
                         $computer.loadProgram(contents);
                     })
                     .catch(error => {
@@ -68,19 +68,26 @@ clear - clears the terminal`
 </script>
 
 <div class="terminal">
-    {#key messages}
-        {#each messages as message}
-            {#if (message[0] === ">")}
-                <pre class="input">{message}</pre>
-            {:else}
-                <pre>{message}</pre>
-            {/if}
-        {/each} 
-    {/key}      
+    <div class="messages">
+        {#key messages}
+            <img src="/assets/logo.png" alt="putater" width="200" />
+            {#each messages as message}
+                {#if (message[0] === ">")}
+                    <pre class="input">{message}</pre>
+                {:else}
+                    <pre>{message}</pre>
+                {/if}
+            {/each} 
+        {/key}      
+    </div>
+
     <input type="text" on:keydown={handleKey} bind:value={command} placeholder="Type here..." />
 </div>
 
 <style>
+    .terminal {
+        padding:30px;
+    }
     input {
         width:100%;
         position: sticky;
@@ -91,10 +98,6 @@ clear - clears the terminal`
         font-family: monospace;
         box-sizing: border-box;
         bottom:0;
-    }   
-    pre {
-        padding-left: 10px;
-        padding-right: 0px;
     }
     .input {
         width: 100%;

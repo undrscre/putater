@@ -1,5 +1,6 @@
 # putater
 a virtual computer, for the funsies!
+<img src="/public/assets/logo.png" width="200" align="right">
 
 ## what is this?
 putater is a virtual computer featuring a 256x256 16-bit color display,

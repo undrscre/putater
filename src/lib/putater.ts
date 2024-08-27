@@ -195,6 +195,7 @@ class Processor {
 
 	executeProgram() {
 		this.counter = 0
+		this.logger.clear();
 		for (let i = 0; i < this.programData.length; i++) {
 			let instruction = this.decodeInstruction(this.programData[this.counter]);
 			if(this.debug) this.logger.log("instruction: ", Object.entries(instruction), "\nraw: ", this.programData[this.counter], "\ncounter: ", this.counter);

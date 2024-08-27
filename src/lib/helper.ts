@@ -28,4 +28,8 @@ export class Logger {
         console.log(message);
         this.message += message + "\n";
     }
+        
+    clear(): void {
+        this.message = "";
+    }
 }
