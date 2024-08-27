@@ -1,5 +1,6 @@
-# putater
 <img src="/public/assets/logo.png" width="400" align="right">
+
+# putater
 a virtual computer, for the funsies!
 
 ## what is this?
@@ -7,7 +8,7 @@ putater is a virtual computer featuring a 256x256 16-bit color display,
 a 16-bit CPU, and a simple instruction set. all written in typescript!
 
 ## how do i use it?
-documentation is coming soon! for now, you can load stuff in the
+documentation is ~coming soon~ [in the works](DOCUMENTATION.md)! for now, you can load stuff in the
 `examples` folder by entering `load examples/01` in the console.
 
 ## how do i build it?
