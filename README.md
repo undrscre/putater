@@ -1,6 +1,5 @@
-<img src="/public/assets/logo.png" width="400" align="right">
-
 # putater
+<img src="/public/assets/logo.png" width="400" align="right">
 a virtual computer, for the funsies!
 
 ## what is this?
