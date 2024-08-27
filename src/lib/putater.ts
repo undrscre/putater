@@ -9,7 +9,8 @@ type Instruction = {
 	},
 	imm: number,
 	addr: number,
-	value: number
+	value: number,
+	page: number,
 	condition: number,
 }
 
@@ -46,6 +47,7 @@ class Processor {
 		const regB = (instruction >> 4) & 0b1111;  // Bits 7-4
 		const regC = instruction & 0b1111;         // Bits 3-0
 		
+		const page = (instruction >> 8) & 0b1111;
 		const imm = instruction & 0b11111111; // Bits 7-0
 		const addr = instruction & 0b1111111111; // Bits 9-0
 		const value = instruction & 0b11111111; // Bits 7-0
@@ -57,6 +59,7 @@ class Processor {
 			imm: imm,
 			value: value,
 			addr: addr,
+			page: page,
 			condition: cond
 		};
 		
@@ -64,66 +67,66 @@ class Processor {
 	
 	executeInstruction(instruction: Instruction) {
 		switch (instruction.opcode) {
-			case 0xf:
+			case 0b1111:
 				// HLT - halt
 				if (!this.paused) this.paused = true;
-					this.counter = 0;	
-					if (this.debug) this.logger.log("HLT - ", this.counter);
+				this.counter = 0;	
+				if (this.debug) this.logger.log("HLT - ", this.counter);
 				break;
-			case 0xe:
+			case 0b1110:
 				// ADD - add
 				this.registers[instruction.reg.c] = this.registers[instruction.reg.a] + this.registers[instruction.reg.b];
 				this.counter += 1;
 				if (this.debug) this.logger.log("ADD - ", this.registers[instruction.reg.c]);
 				break;
-			case 0xd:
+			case 0b1101:
 				// SUB - subtract
 				this.registers[instruction.reg.c] = this.registers[instruction.reg.a] - this.registers[instruction.reg.b];
 				this.counter += 1;
 				if (this.debug) this.logger.log("SUB - ", this.registers[instruction.reg.c]);
 				break;
-			case 0xc:
+			case 0b1100:
 				// NOR - bitwise NOR
 				this.registers[instruction.reg.c] = ~(this.registers[instruction.reg.a] | this.registers[instruction.reg.b]);
 				this.counter += 1;
 				if (this.debug) this.logger.log("NOR - ", this.registers[instruction.reg.c]);
 				break;
-			case 0xb:
+			case 0b1011:
 				// AND - bitwise AND
 				this.registers[instruction.reg.c] = this.registers[instruction.reg.a] & this.registers[instruction.reg.b];
 				this.counter += 1;
 				if (this.debug) this.logger.log("AND - ", this.registers[instruction.reg.c]);
 				break;
-			case 0xa:
+			case 0b1010:
 				// XOR - bitwise XOR    		
 				this.registers[instruction.reg.c] = this.registers[instruction.reg.a] ^ this.registers[instruction.reg.b];
 				this.counter += 1;
 				if (this.debug) this.logger.log("XOR - ", this.registers[instruction.reg.c]);
 				break;
-			case 0x9:
+			case 0b1001:
 				// MOV - move		
 				this.registers[instruction.reg.c] = this.registers[instruction.reg.a];
 				this.counter += 1;
 				if (this.debug) this.logger.log("MOV - ", this.registers[instruction.reg.c]);
 				break;
-			case 0x8:
+			case 0b1000:
 				// LDR - load register
 				this.registers[instruction.reg.a] = instruction.value;
 				this.counter += 1;
 				if (this.debug) this.logger.log("LDR - ", this.registers[instruction.reg.a]);
 				break;
-			case 0x7:
+			case 0b0111:
 				// ADR = add register
 				this.registers[instruction.reg.a] += instruction.value;
 				this.counter += 1;
 				if (this.debug) this.logger.log("ADR - ", this.registers[instruction.reg.a]);
 				break;
-			case 0x6:			
+			case 0b0110:			
 				// JMP = jump
 				this.counter = instruction.addr;
 				if (this.debug) this.logger.log("JMP - ", instruction.addr);
 				break;
-			case 0x5:
+			case 0b0101:
 				// BRH = branch
 				switch (instruction.condition) {
 					case 0b00:
@@ -159,28 +162,31 @@ class Processor {
 						this.counter += 1;
 				}
 				break;
-			case 0x4:
+			case 0b0100:
 				// CAL = call
 				this.counter = instruction.addr;
 				this.addressStack.push(this.counter + 1);
 				if (this.debug) this.logger.log("CAL - ", instruction.addr);
 				break;
-			case 0x3:
+			case 0b0011:
 				// RET = return
 				this.counter = this.addressStack.items[0]
 				this.addressStack.pop();
 				if (this.debug) this.logger.log("RET - ", this.addressStack.items[0]);
 				break;
-			case 0x2:
+			case 0b0010:
 				// PGE = page memory
-				this.memory.setPage(instruction.reg.a);
-			case 0x1:
+				this.memory.setPage(instruction.page);
+				this.counter += 1;
+				if (this.debug) this.logger.log("PGE - ", instruction.page);
+				break;
+			case 0b0001:
 				// LOD = load from memory                                                    // dirty fix
 				this.registers[instruction.reg.b] = this.memory.read((instruction.reg.a + instruction.reg.c));
 				this.counter += 1;
 				if (this.debug) this.logger.log("LOD - ", this.registers[instruction.reg.b]);
 				break;			
-			case 0x0:
+			case 0b0000:
 				// STR = store to memory
 				this.memory.write((instruction.reg.a + instruction.reg.c), this.registers[instruction.reg.b]);			
 				this.counter += 1;
@@ -198,7 +204,10 @@ class Processor {
 		this.logger.clear();
 		for (let i = 0; i < this.programData.length; i++) {
 			let instruction = this.decodeInstruction(this.programData[this.counter]);
-			if(this.debug) this.logger.log("instruction: ", Object.entries(instruction), "\nraw: ", this.programData[this.counter], "\ncounter: ", this.counter);
+			if(this.debug) this.logger.log(`
+instruction:	${JSON.stringify(instruction)}
+raw:	 	${this.programData[this.counter]}
+counter:	${this.counter}`);
 			
 			this.executeInstruction(instruction);
 		}
