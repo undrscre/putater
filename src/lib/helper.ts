@@ -33,3 +33,7 @@ export class Logger {
         this.message = "";
     }
 }
+
+export function dec2bin(n: string): string {
+    return (parseInt(n) >>> 0).toString(2);
+}

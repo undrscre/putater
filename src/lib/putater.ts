@@ -1,5 +1,4 @@
 import { Stack, Logger } from './helper';
-
 type Instruction = {
 	opcode: number,
 	reg: {
@@ -170,7 +169,7 @@ class Processor {
 				break;
 			case 0b0011:
 				// RET = return
-				this.counter = this.addressStack.items[0]
+				this.counter = this.addressStack.items[0];
 				this.addressStack.pop();
 				if (this.debug) this.logger.log("RET - ", this.addressStack.items[0]);
 				break;

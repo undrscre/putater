@@ -1,5 +1,8 @@
 <script lang="ts">
-    import { computer } from "../state";    
+    import { computer } from "../state";  
+    import { Assembler } from "../assembler";  
+
+    let assembler = new Assembler();
     let command = "";
 
     let messages: string[] = [];
@@ -15,10 +18,29 @@
     function executeCommand(command: string) {  
         const args: string[] = command.split(" ").slice(1);
         switch (command.split(" ")[0]) {  
+            case "assemble":
+                const asmPath = `/code/${args.join("/")}.asm`;
+                messages = [...messages, `Assembling program: ${args.join("/")}`];  
+                fetch(asmPath)
+                    .then(response => response.text())
+                    .then(file => {
+                        const contents = file
+                        const parsed = assembler.parse(contents);
+                        const assembled = assembler.assemble(parsed);
+                        messages = [...messages, `Program Parsed!
+Parsed:    ${JSON.stringify(parsed)}
+Assembled: ${assembled}`];
+                        messages = [...messages, `Loading assembled program`];
+                        $computer.loadProgram(assembled);
+                    })
+                    .catch(error => {
+                        messages = [...messages,`Error loading program ${asmPath}: ${error}`];
+                    }); 
+                break;
             case "load":
-                const filePath = `/code/${args.join("/")}.pa`;
+                const machinePath = `/code/${args.join("/")}.mc`;
                 messages = [...messages, `Loading program ${args.join("/")}`];  
-                fetch(filePath)
+                fetch(machinePath)
                     .then(response => response.text())
                     .then(file => {
                         const contents = new Uint16Array(file.split("\n").map(line => parseInt(line, 2)));
@@ -26,12 +48,12 @@
                         $computer.loadProgram(contents);
                     })
                     .catch(error => {
-                        messages = [...messages,`Error loading program ${filePath}: ${error}`];
+                        messages = [...messages,`Error loading program ${machinePath}: ${error}`];
                     }); 
                 break;
             case "run":
                 //@ts-ignore this works anyway lol          
-                messages = [...messages, "Running program: ", $computer.cpu.programData];
+                messages = [...messages, `Running program: ${$computer.cpu.programData}`];
                 $computer.runProgram();
                 messages = [...messages, "Program execution complete"];
                 break;

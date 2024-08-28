@@ -13,7 +13,7 @@ documentation is ~coming soon~ [in the works](DOCUMENTATION.md)! for now, you ca
 
 ## how do i build it?
 ```bash
-git clone https://github.com/undrscre/pot80.git
+git clone https://github.com/undrscre/putater.git
 npm install
 npm run build
 ```
