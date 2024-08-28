@@ -18,7 +18,7 @@
     function executeCommand(command: string) {  
         const args: string[] = command.split(" ").slice(1);
         switch (command.split(" ")[0]) {  
-            case "assemble":
+            case "load":
                 const asmPath = `/code/${args.join("/")}.asm`;
                 messages = [...messages, `Assembling program: ${args.join("/")}`];  
                 fetch(asmPath)
@@ -32,12 +32,13 @@ Parsed:    ${JSON.stringify(parsed)}
 Assembled: ${assembled}`];
                         messages = [...messages, `Loading assembled program`];
                         $computer.loadProgram(assembled);
+                        messages = [...messages, `Program loaded! now execute "run"`];
                     })
                     .catch(error => {
                         messages = [...messages,`Error loading program ${asmPath}: ${error}`];
                     }); 
                 break;
-            case "load":
+            case "loadmc":
                 const machinePath = `/code/${args.join("/")}.mc`;
                 messages = [...messages, `Loading program ${args.join("/")}`];  
                 fetch(machinePath)
@@ -93,7 +94,7 @@ clear - clears the terminal`
 <div class="terminal">
     <div class="messages">
         <pre><img src="/assets/logo.png" alt="putater" width="200" />
-putater v0.0.1
+putater v0.0.3
 run help to get started
 made with &lt;3 by niko</pre>
         {#key messages}

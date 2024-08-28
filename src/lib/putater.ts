@@ -163,8 +163,8 @@ class Processor {
 				break;
 			case 0b0100:
 				// CAL = call
-				this.counter = instruction.addr;
 				this.addressStack.push(this.counter + 1);
+				this.counter = instruction.addr;
 				if (this.debug) this.logger.log("CAL - ", instruction.addr);
 				break;
 			case 0b0011:
@@ -201,8 +201,11 @@ class Processor {
 	executeProgram() {
 		this.counter = 0
 		this.logger.clear();
-		for (let i = 0; i < this.programData.length; i++) {
+		for (let i = 0; i < 1000; i++) {
+			if (this.paused == true) break;
+
 			let instruction = this.decodeInstruction(this.programData[this.counter]);
+
 			if(this.debug) this.logger.log(`
 instruction:	${JSON.stringify(instruction)}
 raw:	 	${this.programData[this.counter]}

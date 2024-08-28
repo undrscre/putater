@@ -147,7 +147,7 @@ export class Assembler {
                 instruction.push(value);
             }
 
-            // LABEL / TODO: actually make this work
+            // LABELS.. AND STUFF
             if (["JMP", "CAL", "BRH"].includes(parts[0])) {
                 console.log(labels[parts[1]]);
                 if (labels[parts[1]] === undefined) {
@@ -175,6 +175,7 @@ export class Assembler {
                 return (acc << shift) | val;
             }, 0);
             const binary = ((opcode << 12) | operand).toString(2).padStart(16, '0');
+            console.log(binary);
             assembled = new Uint16Array([...assembled, parseInt(binary, 2)]);
         }
 
