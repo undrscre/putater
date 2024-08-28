@@ -181,16 +181,16 @@ class Processor {
 				if (this.debug) this.logger.log("PGE - ", instruction.page);
 				break;
 			case 0b0001:
-				// LOD = load from memory                                                    // dirty fix
-				this.registers[instruction.reg.b] = this.memory.read((instruction.reg.a + instruction.reg.c));
+				// LOD = load from memory
+				this.registers[instruction.reg.b] = this.memory.read(instruction.addr);
 				this.counter += 1;
 				if (this.debug) this.logger.log("LOD - ", this.registers[instruction.reg.b]);
 				break;			
 			case 0b0000:
 				// STR = store to memory
-				this.memory.write((instruction.reg.a + instruction.reg.c), this.registers[instruction.reg.b]);			
+				this.memory.write(instruction.reg.a, instruction.value);			
 				this.counter += 1;
-				if (this.debug) this.logger.log("STR - ", this.memory.read((instruction.reg.a + instruction.reg.c)));
+				if (this.debug) this.logger.log("STR - ", this.memory.read(instruction.reg.a));
 				break;
 			default:
 				console.error("Invalid opcode, resetting program");			
