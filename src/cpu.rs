@@ -1,5 +1,6 @@
 use bitflags::bitflags;
 use log::{debug, info, warn};
+use crate::memory::MemoryBus;
 
 bitflags! {
     pub struct Flags: u8 {
@@ -12,9 +13,10 @@ bitflags! {
 
 pub struct CPU {
     pub program: Vec<u16>,
-
+    pub memory: MemoryBus,
     pub registers: [u8; 16],
-    _ram: [u8; 65535],
+
+    pub page: u8,
     pub pc: usize,
     _flags: Flags
 }
@@ -23,9 +25,10 @@ impl CPU {
     pub fn new(program: Vec<u16>, registers: [u8; 16]) -> CPU {
         CPU {
             registers,
-            _ram: [0; 65535],
+            memory: MemoryBus::new(),
             program,
 
+            page: 0,
             pc: 0,
             _flags: Flags::empty()
         }
@@ -92,7 +95,35 @@ impl CPU {
                 0b1000 => {
                     self.registers[reg_a] += value;
                     debug!("exec. LDR: {0}", self.registers[reg_a]);
-                }
+                },
+                0b1001 => {
+                    //JMP
+                    todo!()
+                },
+                0b1010 => {
+                    //BRH
+                    todo!()
+                },
+                0b1011 => {
+                    //CAL
+                    todo!()
+                },
+                0b1100 => {
+                    //RET
+                    todo!()
+                },
+                0b1101 => {
+                    self.page = value;
+                    debug!("exec. PGE: {0}", self.page);
+                },
+                0b1110 => {
+                    self.registers[reg_a] = self.memory.read(self.page, self.registers[reg_b]);
+                    debug!("exec. LOD: {0}", self.registers[reg_a]);
+                },
+                0b1111 => {
+                    self.memory.write(self.page, self.registers[reg_b], self.registers[reg_a]);
+                    debug!("exec. STR: {0}", self.memory.read(self.page, self.registers[reg_b]));
+                },
                 _ => {
                     // shouldn't be possible like ever if you see this run
                     warn!("Unknown opcode {opcode}, halting..");
