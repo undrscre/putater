@@ -6,19 +6,14 @@ pub trait Device {
 pub struct NullDevice;
 impl Device for NullDevice {
     fn read(&self, _: u8) -> u8 { 0 }
-    fn write(&mut self, offset: u8, value: u8) {
-        println!("Screen received write at {offset}: {value}");
-    }
+    fn write(&mut self, _: u8, _: u8) {}
 }
 
-pub struct ScreenDevice;
-impl Device for ScreenDevice {
-    fn read(&self, _: u8) -> u8 { 0 }
-    fn write(&mut self, offset: u8, value: u8) {
-        println!("Screen received write at {offset}: {value}");
+pub struct TestDevice;
+impl Device for TestDevice {
+    fn read(&self, offset: u8) -> u8 { 
+        println!("hello from testdevice! {0}", offset);
+        offset
     }
-}
-
-pub enum DeviceIDs {
-    ScreenID = 1,
+    fn write(&mut self, _offset: u8, _value: u8) {}
 }

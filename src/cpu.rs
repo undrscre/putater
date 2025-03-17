@@ -122,7 +122,7 @@ impl CPU {
                 },
                 0b1111 => {
                     self.memory.write(self.page, self.registers[reg_b], self.registers[reg_a]);
-                    debug!("exec. STR: {0}", self.memory.read(self.page, self.registers[reg_b]));
+                    debug!("exec. STR: {0}", self.registers[reg_a]);
                 },
                 _ => {
                     // shouldn't be possible like ever if you see this run

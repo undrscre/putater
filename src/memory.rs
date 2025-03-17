@@ -1,5 +1,6 @@
 use crate::devices;
 use crate::devices::Device;
+use log::warn;
 
 pub struct MemoryBus {
     ram: [[u8; 256]; 251], // 250x256 = 64000 usable bytes of memory
@@ -27,10 +28,11 @@ impl MemoryBus {
     pub fn read(&mut self, page: u8, offset: u8) -> u8 {
         match page {
             251..=255 => {
-                let idx = (page - 250) as usize;
+                let idx = (page - 251) as usize;
                 if let Some(device) = &self.devices[idx] {
                     device.read(offset)
                 } else {
+                    warn!("no device loaded on page {page}!");
                     0
                 }
             },
@@ -44,7 +46,7 @@ impl MemoryBus {
                 match offset {
                     0 => {
                         let device: Box<dyn Device> = match value {
-                            1 => Box::new(devices::ScreenDevice),
+                            1 => Box::new(devices::TestDevice),
                             _ => Box::new(devices::NullDevice),
                         };
 						self.attach_device(device).unwrap();
@@ -53,9 +55,11 @@ impl MemoryBus {
                 }
             },
             251..=255 => {
-                let idx = (page - 250) as usize;
+                let idx = (page - 251) as usize;
                 if let Some(device) = &mut self.devices[idx] {
                     device.write(offset, page)
+                } else {
+                    warn!("no device loaded on page {page}!");
                 }
             },
             _ => self.ram[page as usize][offset as usize] = value
