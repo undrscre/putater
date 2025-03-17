@@ -67,7 +67,6 @@ impl Assembler {
         for parts in &parsed {
             if parts.len() == 3 && parts[0] == "define" {
                 definitions.insert(parts[1].clone(), parts[2].parse::<u8>().unwrap());
-                address += 1; // i think?!
             } else if parts.len() == 1 && parts[0].ends_with(':') {
                 labels.insert(parts[0][..parts[0].len() - 1].to_string(), address);
             } else {
