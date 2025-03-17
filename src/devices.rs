@@ -1,24 +1,61 @@
-pub trait Device {
-    fn read(&self, offset: u8) -> u8;
-    fn write(&mut self, offset: u8, value: u8);
-}
+use std::io::{empty, Empty, Read, Result, Write};
 
-pub struct NullDevice;
-impl Device for NullDevice {
-    fn read(&self, _: u8) -> u8 { 0 }
-    fn write(&mut self, _: u8, _: u8) {}
-}
+pub trait Device: Read + Write {}
 
-pub struct TestDevice;
-impl Device for TestDevice {
-    fn read(&self, offset: u8) -> u8 { 
-        match offset {
-            0 => {
-                println!("hello from testdevice! {0}", offset);
-                128
-            }
-            _ => {0}
-        }
+pub struct NullDevice(Empty);
+
+impl NullDevice {
+    pub fn new() -> Self {
+        Self(empty())
     }
-    fn write(&mut self, _offset: u8, _value: u8) {}
+}
+
+impl Device for NullDevice {}
+
+impl Read for NullDevice {
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
+        self.0.read(buf)
+    }
+}
+
+impl Write for NullDevice {
+    fn write(&mut self, buf: &[u8]) -> Result<usize> {
+        self.0.write(buf)
+    }
+
+    fn flush(&mut self) -> Result<()> {
+        self.0.flush()
+    }
+}
+
+pub struct TestDevice { inner: Empty, initial_write: bool }
+
+impl TestDevice {
+    pub fn new() -> Self {
+        Self { inner: empty(), initial_write: true }
+    }
+}
+
+impl Device for TestDevice {}
+
+impl Read for TestDevice {
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
+        if self.initial_write && buf.len() > 0 {
+            println!("hello from testdevice! {:?}", buf);
+            buf[0] = 128;
+            self.initial_write = false;
+        }
+
+        self.inner.read(buf)
+    }
+}
+
+impl Write for TestDevice {
+    fn write(&mut self, buf: &[u8]) -> Result<usize> {
+        self.inner.write(buf)
+    }
+
+    fn flush(&mut self) -> Result<()> {
+        self.inner.flush()
+    }
 }
