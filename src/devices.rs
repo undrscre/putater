@@ -12,8 +12,13 @@ impl Device for NullDevice {
 pub struct TestDevice;
 impl Device for TestDevice {
     fn read(&self, offset: u8) -> u8 { 
-        println!("hello from testdevice! {0}", offset);
-        offset
+        match offset {
+            0 => {
+                println!("hello from testdevice! {0}", offset);
+                128
+            }
+            _ => {0}
+        }
     }
     fn write(&mut self, _offset: u8, _value: u8) {}
 }

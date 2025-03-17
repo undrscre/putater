@@ -2,6 +2,8 @@ use bitflags::bitflags;
 use log::{debug, info, warn};
 use crate::memory::MemoryBus;
 
+// todo!! REFACTOR EVERYTHING BRAH
+
 bitflags! {
     pub struct Flags: u8 {
         const Z = 0b0001;
@@ -18,6 +20,7 @@ pub struct CPU {
 
     pub page: u8,
     pub pc: usize,
+    pub address_stack: Vec<usize>,
     _flags: Flags
 }
 
@@ -30,6 +33,7 @@ impl CPU {
 
             page: 0,
             pc: 0,
+            address_stack: vec![],
             _flags: Flags::empty()
         }
     }
@@ -37,7 +41,6 @@ impl CPU {
     pub fn run(&mut self) {
         // genuinely should find a better way to impl this
         // used for cases like loops so it doesn't break mid program
-        // TODO: mut later
         info!("running program!");
         let lifeline = 0;
         loop {
@@ -66,63 +69,66 @@ impl CPU {
                 },
                 0b0001 => {
                     self.registers[reg_c] = self.registers[reg_a] + self.registers[reg_b];
-                    debug!("exec. ADD: {0}", self.registers[reg_c]);
+                    
+                    debug!("executed. ADD: {0}", self.registers[reg_c]);
                 },
                 0b0010 => {
                     self.registers[reg_c] = self.registers[reg_a] - self.registers[reg_b];
-                    debug!("exec. SUB: {0}", self.registers[reg_c]);
+                    debug!("executed. SUB: {0}", self.registers[reg_c]);
                 },
                 0b0011 => {
                     self.registers[reg_c] = !(self.registers[reg_a] | self.registers[reg_b]);
-                    debug!("exec. NOR: {0}", self.registers[reg_c]);
+                    debug!("executed. NOR: {0}", self.registers[reg_c]);
                 },
                 0b0100 => {
                     self.registers[reg_c] = self.registers[reg_a] & self.registers[reg_b];
-                    debug!("exec. AND: {0}", self.registers[reg_c]);
+                    debug!("executed. AND: {0}", self.registers[reg_c]);
                 },
                 0b0101 => {
                     self.registers[reg_c] = self.registers[reg_a] ^ self.registers[reg_b];
-                    debug!("exec. XOR: {0}", self.registers[reg_c]);
+                    debug!("executed. XOR: {0}", self.registers[reg_c]);
                 },
                 0b0110 => {
                     self.registers[reg_c] = self.registers[reg_a];
-                    debug!("exec. MOV: {0}", self.registers[reg_c]);
+                    debug!("executed. MOV: {0}", self.registers[reg_c]);
                 },
                 0b0111 => {
                     self.registers[reg_a] = value;
-                    debug!("exec. LDR: {0}", self.registers[reg_a]);
+                    debug!("executed. LDR: {0}", self.registers[reg_a]);
                 }
                 0b1000 => {
                     self.registers[reg_a] += value;
-                    debug!("exec. LDR: {0}", self.registers[reg_a]);
+                    debug!("executed. LDR: {0}", self.registers[reg_a]);
                 },
                 0b1001 => {
-                    //JMP
-                    todo!()
+                    self.pc = value as usize;
+                    debug!("executed. JMP: {0}", self.pc);
                 },
                 0b1010 => {
                     //BRH
                     todo!()
                 },
                 0b1011 => {
-                    //CAL
-                    todo!()
+                    self.address_stack.push(self.pc + 1);
+                    self.pc = value as usize;
+                    debug!("executed. CAL: {0}", self.pc);
                 },
                 0b1100 => {
-                    //RET
-                    todo!()
+                    self.pc = self.address_stack[0];
+                    self.address_stack.pop();
+                    debug!("executed. RET: {0}", self.pc);
                 },
                 0b1101 => {
                     self.page = value;
-                    debug!("exec. PGE: {0}", self.page);
+                    debug!("executed. PGE: {0}", self.page);
                 },
                 0b1110 => {
                     self.registers[reg_a] = self.memory.read(self.page, self.registers[reg_b]);
-                    debug!("exec. LOD: {0}", self.registers[reg_a]);
+                    debug!("executeduted. LOD: {0}", self.registers[reg_a]);
                 },
                 0b1111 => {
                     self.memory.write(self.page, self.registers[reg_b], self.registers[reg_a]);
-                    debug!("exec. STR: {0}", self.registers[reg_a]);
+                    debug!("executed. STR: {0}", self.registers[reg_a]);
                 },
                 _ => {
                     // shouldn't be possible like ever if you see this run
