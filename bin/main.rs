@@ -1,5 +1,5 @@
-use vm::cpu;
-use vm::assembler;
+use putater::cpu;
+use putater::assembler;
 
 use std::fs;
 use std::env;
