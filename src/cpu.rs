@@ -8,10 +8,10 @@ use log::{debug, info, warn};
 
 bitflags! {
     pub struct Flags: u8 {
-        const Z = 0b0001;
-        const C = 0b0010;
-        const N = 0b0100;
-        const V = 0b1000;
+        const Z = 0b00;
+        const C = 0b01;
+        const N = 0b10;
+        const V = 0b11;
    }
 }
 
@@ -68,7 +68,7 @@ impl CPU {
                 }
                 0b0001 => {
                     self.registers[reg_c] = self.registers[reg_a] + self.registers[reg_b];
-
+                    
                     debug!("executed. ADD: {0}", self.registers[reg_c]);
                 }
                 0b0010 => {
@@ -105,10 +105,11 @@ impl CPU {
                 }
                 0b1010 => {
                     //BRH
+                    
                     todo!()
                 }
                 0b1011 => {
-                    self.address_stack.push(self.pc + 1);
+                    self.address_stack.push(self.pc);
                     self.pc = value as usize;
                     debug!("executed. CAL: {0}", self.pc);
                 }
@@ -122,9 +123,10 @@ impl CPU {
                     debug!("executed. PGE: {0}", self.memory.page);
                 }
                 0b1110 => {
-                    self.memory
-                        .seek(SeekFrom::Start(self.registers[reg_b] as u64))
-                        .expect("seek to register b should succeed");
+                    let _ = self.memory
+                        .seek(SeekFrom::Start(self.registers[reg_b] as u64));
+                        // check below
+                        // .expect("seek to register b should succeed");
 
                     let buf = &mut [self.registers[reg_a]];
                     self.memory
@@ -133,11 +135,14 @@ impl CPU {
                     debug!("executed. LOD: {0}", self.registers[reg_a]);
                 }
                 0b1111 => {
-                    self.memory
-                        .seek(SeekFrom::Start(self.registers[reg_b] as u64))
-                        .expect("seek to register b should succeed");
+                    let _ = self.memory
+                        .seek(SeekFrom::Start(self.registers[reg_b] as u64));
+                        // lalala purposefully ignored due to the fact that
+                        // this line would cause the whole program to crash
+                        // when read/writing past page 250
+                        // .expect("seek to register b should succeed"); 
 
-                    let buf = &mut [self.registers[reg_b]];
+                    let buf = &mut [self.registers[reg_a], self.registers[reg_b]];
                     self.memory
                         .write(buf)
                         .expect("write from register a into memory[register b] should succeed");

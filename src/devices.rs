@@ -1,4 +1,5 @@
 use std::io::{empty, Empty, Read, Result, Write};
+pub mod graphics;
 
 pub trait Device: Read + Write {}
 

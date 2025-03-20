@@ -7,6 +7,7 @@ edition = "2021"
 bitflags = "2.9.0"
 env_logger = "0.11.7"
 log = "0.4.26"
+sdl2 = "0.37.0"
 
 [lib]
 name = "putater"

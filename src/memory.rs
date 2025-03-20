@@ -58,7 +58,7 @@ impl io::Read for MemoryBus {
 
 impl io::Seek for MemoryBus {
     fn seek(&mut self, pos: io::SeekFrom) -> io::Result<u64> {
-        if self.page >= 250 {
+        if self.page > 250 {
             return Err(io::ErrorKind::NotSeekable.into())
         }
 
@@ -74,7 +74,7 @@ impl io::Write for MemoryBus {
                 Ok(buf.into_iter().try_fold(0, |acc, id| {
                     let device: Box<dyn Device> = match id {
                         0 => Box::new(devices::TestDevice::new()),
-                        1 => Box::new(devices::NullDevice::new()),
+                        1 => Box::new(devices::graphics::DisplayDevice::new()),
                         _ => return Err(io::ErrorKind::NotFound.into()),
                     };
 
@@ -84,6 +84,7 @@ impl io::Write for MemoryBus {
                 })?)
             }
             251..=255 => {
+                println!("{:#?}", buf);
                 let idx = (self.page - 251) as usize;
                 if let Some(device) = &mut self.devices[idx] {
                     device.write(buf)

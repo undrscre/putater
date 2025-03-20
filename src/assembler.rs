@@ -87,11 +87,16 @@ impl Assembler {
             let opcode = InstructionSet::from_name(parts[0].as_str()).expect("opcode should exist");
             let mut instruction = (opcode.bits() as u16) << 12;
 
-            let get_register = |part: &String| RegisterSet::from_name(part.to_uppercase().as_str()).expect("register should exist").bits();
+            let get_register = |part: &String| RegisterSet::from_name(part.to_uppercase().as_str()).expect(format!("register {0} should exist", part).as_str()).bits();
             match parts[0].as_str() {
                 "HLT" | "RET" => {
                     assert_eq!(parts.len(), 1, "Invalid operand count");
                     instruction |= 0b_0000_0000_0000_0000;
+                },
+                "PGE" => {
+                    assert_eq!(parts.len(), 2, "Invalid operand count");
+                    let value = parts[1].parse::<u8>().expect("Invalid immediate value");
+                    instruction |= value as u16;
                 }
                 "LDR" | "ADR" => {
                     assert_eq!(parts.len(), 3, "Invalid operand count");
@@ -103,7 +108,7 @@ impl Assembler {
                     instruction |= (reg_a as u16) << 8;
                     instruction |= value as u16;
                 }
-                "JMP" | "CAL" | "BRH" => {
+                "JMP" | "CAL" => {
                     assert_eq!(parts.len(), 2, "Invalid operand count");
                     let address = labels.get(&parts[1]).copied().expect("Unknown label");
                     instruction |= address as u16;
