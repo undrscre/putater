@@ -84,7 +84,6 @@ impl io::Write for MemoryBus {
                 })?)
             }
             251..=255 => {
-                println!("{:#?}", buf);
                 let idx = (self.page - 251) as usize;
                 if let Some(device) = &mut self.devices[idx] {
                     device.write(buf)

@@ -21,7 +21,7 @@ enum DisplayCommands {
 
 enum DisplayResponse {
     Ok,
-    Error(String)
+    Error(String) // what the fuck why does this cause a warning
 }
 
 pub struct DisplayDevice {
@@ -79,7 +79,6 @@ impl DisplayDevice {
                 }
                 
                 while let Ok(cmd) = cmd_rx.try_recv() {
-                    println!("comand recieved {:#?}", cmd);
                     match cmd {
                         DisplayCommands::SetPixel(x, y, (r,g,b)) => {
                             if x < WIDTH && y < HEIGHT {

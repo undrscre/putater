@@ -5,7 +5,7 @@ use std::fs;
 use std::env;
 
 fn main() {
-    env_logger::builder().filter_level(log::LevelFilter::Debug).init();
+    env_logger::builder().filter_level(log::LevelFilter::Info).init();
 
     let args: Vec<String> = env::args().collect();
     let contents = fs::read_to_string(&args[1])

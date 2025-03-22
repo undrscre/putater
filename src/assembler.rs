@@ -51,6 +51,7 @@ impl Assembler {
     fn parse(code: String) -> Vec<Vec<String>> {
         code.lines()
             .filter(|l| !l.trim().is_empty() && !l.trim().starts_with(';'))
+            .map(|l| l.split(';').next().unwrap().trim())
             .map(|l| l.trim().split_whitespace().map(String::from).collect())
             .collect()
     }
