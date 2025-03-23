@@ -44,6 +44,17 @@ bitflags! {
         const R14 = 0b1110;
         const R15 = 0b1111;
     }
+
+    struct BranchCondition: u8 {
+        const NE = 0b0000;  
+        const EQ = 0b0001;  
+        const GT = 0b0010;  
+        const LT = 0b0011;  
+        const CC = 0b0100;  
+        const CS = 0b0101;  
+        const VC = 0b0110;  
+        const VS = 0b0111;  
+    }
 }
 
 pub struct Assembler;
@@ -61,9 +72,9 @@ impl Assembler {
         let mut definitions: HashMap<String, u8> = HashMap::new();
         let mut labels: HashMap<String, u8> = HashMap::new();
         let mut address: u8 = 0;
-
+        let mut line: usize = 0;
         let parsed = Self::parse(code);
-
+        println!("parsing {:#?}", parsed);
         // first pass; collect keywords
         for parts in &parsed {
             if parts.len() == 3 && parts[0] == "define" {
@@ -77,6 +88,7 @@ impl Assembler {
 
         // second pass; assemble
         for parts in parsed {
+            line += 1;
             // skip keywords
             if parts.len() == 1 && parts[0].ends_with(':') {
                 continue;
@@ -85,7 +97,7 @@ impl Assembler {
                 continue;
             }
 
-            let opcode = InstructionSet::from_name(parts[0].as_str()).expect("opcode should exist");
+            let opcode = InstructionSet::from_name(parts[0].as_str()).expect(format!("opcode should exist at {line}").as_str());
             let mut instruction = (opcode.bits() as u16) << 12;
 
             let get_register = |part: &String| RegisterSet::from_name(part.to_uppercase().as_str()).expect(format!("register {0} should exist", part).as_str()).bits();
@@ -99,12 +111,12 @@ impl Assembler {
                     let value = parts[1].parse::<u8>().expect("Invalid immediate value");
                     instruction |= value as u16;
                 }
-                "LDR" | "ADR" => {
-                    assert_eq!(parts.len(), 3, "Invalid operand count");
+                "LDR" | "ADR" | "LOD" | "STR" => {
+                    assert_eq!(parts.len(), 3, "Invalid operand count {line}");
                     let reg_a = get_register(&parts[1]);
                     let value = match definitions.get(parts[2].as_str()) {
                         Some(def) => *def,
-                        None => parts[2].parse::<u8>().expect("Invalid immediate value"),
+                        None => parts[2].parse::<u8>().expect(format!("Invalid immediate value {line}").as_str()),
                     };
                     instruction |= (reg_a as u16) << 8;
                     instruction |= value as u16;
@@ -112,6 +124,13 @@ impl Assembler {
                 "JMP" | "CAL" => {
                     assert_eq!(parts.len(), 2, "Invalid operand count");
                     let address = labels.get(&parts[1]).copied().expect("Unknown label");
+                    instruction |= address as u16;
+                },
+                "BRH" => {
+                    assert_eq!(parts.len(), 3, "Invalid operand count");
+                    let cond = BranchCondition::from_name(parts[1].to_uppercase().as_str()).expect("Invalid condition").bits();
+                    let address = labels.get(&parts[2]).copied().expect("Unknown label");
+                    instruction |= (cond as u16) << 8;
                     instruction |= address as u16;
                 }
                 _ => {

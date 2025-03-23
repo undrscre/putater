@@ -13,7 +13,6 @@ const HEIGHT: u16 = 256;
 #[derive(Debug)]
 enum DisplayCommands {
     SetPixel(u16, u16, (u8,u8,u8)),
-    ReadPixel(u16, u16),
     Clear((u8,u8,u8)),
     Present,
     Quit
@@ -60,11 +59,11 @@ impl DisplayDevice {
             
             let texture_creator = canvas.texture_creator();
             let mut texture = texture_creator.create_texture_streaming(
-                sdl2::pixels::PixelFormatEnum::RGB888, WIDTH as u32, HEIGHT as u32
+                sdl2::pixels::PixelFormatEnum::RGB24, WIDTH as u32, HEIGHT as u32
             ).unwrap();
             
             let buffer_size = (WIDTH as usize) * (HEIGHT as usize);
-            let mut pixel_buffer = vec![0u32; buffer_size];
+            let mut pixel_buffer = vec![(0u8, 0u8, 0u8); buffer_size];
 
             let mut events = context.event_pump().unwrap();
             let mut running = true;
@@ -82,23 +81,12 @@ impl DisplayDevice {
                     match cmd {
                         DisplayCommands::SetPixel(x, y, (r,g,b)) => {
                             if x < WIDTH && y < HEIGHT {
-                                let color = ((r as u32) << 16) | ((g as u32) << 8) | (b as u32);
-                                pixel_buffer[(y * WIDTH + x) as usize] = color;
+                                pixel_buffer[(y * WIDTH + x) as usize] = (r, g, b);
                                 need_update = true;
                             }
                         },
-                        DisplayCommands::ReadPixel(x, y) => {
-                            if x < WIDTH && y < HEIGHT {
-                                // let color = pixel_buffer[(y * WIDTH + x) as usize];
-                                // let r = ((color >> 16) & 0xFF) as u8;
-                                // let g = ((color >> 8) & 0xFF) as u8;
-                                // let b = (color & 0xFF) as u8;
-                                todo!(); // fuck lol
-                            }
-                        }
                         DisplayCommands::Clear((r,g,b)) => {
-                            let color = ((r as u32) << 16) | ((g as u32) << 8) | (b as u32);
-                            pixel_buffer.fill(color);
+                            pixel_buffer.fill((r,g,b));
                             need_update = true;
                         }
                         DisplayCommands::Present => {
@@ -107,11 +95,11 @@ impl DisplayDevice {
                                     for y in 0..HEIGHT as usize {
                                         for x in 0..WIDTH as usize {
                                             let offset = y * pitch + x * 3;
-                                            let color = pixel_buffer[y * WIDTH as usize + x];
+                                            let (r, g, b) = pixel_buffer[y * WIDTH as usize + x];
 
-                                            buffer[offset] = ((color >> 16) & 0xFF) as u8;  // red
-                                            buffer[offset + 1] = ((color >> 8) & 0xFF) as u8; // green
-                                            buffer[offset + 2] = (color & 0xFF) as u8; // blue
+                                            buffer[offset] = r;       // red
+                                            buffer[offset + 1] = g;   // green
+                                            buffer[offset + 2] = b;   // blue
                                         }
                                     }
                                 }).unwrap();
@@ -144,15 +132,6 @@ impl DisplayDevice {
         }
     }
 
-    pub fn read_pixel(&mut self, x: u16, y: u16) -> Result<()> {
-        self.sender.send(DisplayCommands::ReadPixel(x, y)).map_err(io_err)?;
-        self.receiver.recv().map_err(io_err).and_then(|res| {
-            match res {
-                DisplayResponse::Ok => Ok(()),
-                DisplayResponse::Error(e) => Err(Error::new(ErrorKind::Other, e))
-            }
-        })
-    }
     pub fn set_pixel(&mut self, x: u16, y: u16, color: (u8,u8,u8)) -> Result<()> {
         self.sender.send(DisplayCommands::SetPixel(x, y, color)).map_err(io_err)?;
         self.receiver.recv().map_err(io_err).and_then(|res| {
@@ -199,31 +178,7 @@ impl Device for DisplayDevice {}
 impl Read for DisplayDevice {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
         let len = std::cmp::min(buf.len(), self.mem_buffer.len());
-        
-        // Find out which address is being read
-        if len >= 1 {
-            let address = buf[0];
-            match address {
-                5 => {
-                    self.set_pixel(self.current_x, self.current_y, self.current_color)?;
-                },
-                6 => {
-                    self.set_pixel(self.current_x, self.current_y, (0,0,0))?;
-                },
-                7 => { 
-                    self.present()?;
-                },
-                8 => {
-                    self.clear((0,0,0))?;
-                },
-                9 => {
-                    buf[1] = 0;
-                },
-                _ => {}
-            }
-        }
-        buf[..len].copy_from_slice(&self.mem_buffer[..len]);
-        
+        buf[..len].copy_from_slice(&self.mem_buffer[..len]); 
         Ok(len)
     }
 }
@@ -248,8 +203,21 @@ impl Write for DisplayDevice {
                     4 => {
                         self.current_y = *value as u16;
                     },
+                    5 => {
+                        self.set_pixel(self.current_x, self.current_y, self.current_color)?;
+                    },
+                    6 => {
+                        self.set_pixel(self.current_x, self.current_y, (0,0,0))?;
+                    },
+                    7 => { 
+                        self.present()?;
+                    },
+                    8 => {
+                        self.clear((0,0,0))?;
+                    },
                     _ => {}
                 }
+                println!("{} {} {:?}", self.current_x, self.current_y, self.current_color);
             }
         }
         Ok(buf.len())
